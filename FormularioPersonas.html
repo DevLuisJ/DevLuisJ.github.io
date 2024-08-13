@@ -23,28 +23,32 @@
     </form>
 
     <script>
-        const form = document.getElementById('registroForm');
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
+       function doPost(e) {
+  var response = ContentService.createTextOutput();
+  
+  // Agregar encabezados CORS
+  response.setMimeType(ContentService.MimeType.JSON);
+  response.append(JSON.stringify({"status":"success"}));
+  response.setHeader("Access-Control-Allow-Origin", "*");
+  response.setHeader("Access-Control-Allow-Methods", "POST");
+  response.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-            const formData = new FormData(form);
-            const params = new URLSearchParams();
-            formData.forEach((value, key) => {
-                params.append(key, value);
-            });
+  try {
+    // Accede a la hoja de cálculo de Google Sheets
+    var sheet = SpreadsheetApp.openById("1QjlMBbY7r1ma9T7y9PuYlIdVZ4zfhiJMqXhBiMqj0mM").getActiveSheet();
+    var data = e.parameter;
 
-            fetch('https://script.google.com/macros/s/AKfycbz8BRkbmj_d02nh-zcdjvutaeMzJECrBINxSHSEx-1Q27eQem33_F6LRkxL1AbfZTyK/exec', {
-                method: 'POST',
-                body: params
-            }).then(response => response.json())
-              .then(data => {
-                  if (data.result === 'success') {
-                      alert('Datos enviados exitosamente');
-                  } else {
-                      alert('Hubo un error al enviar los datos');
-                  }
-              });
-        });
+    // Agrega una fila con los datos recibidos
+    sheet.appendRow([data.nombre, data.apellidos, data.cedula, data.email]);
+
+    return response;
+  } catch (error) {
+    // Maneja cualquier error
+    return ContentService.createTextOutput(JSON.stringify({"result":"error", "error": error.message}))
+                         .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
     </script>
 </body>
 </html>
